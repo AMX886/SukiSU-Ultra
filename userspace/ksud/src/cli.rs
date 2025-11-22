@@ -586,7 +586,12 @@ pub fn run() -> Result<()> {
                                 None => anyhow::bail!("Key '{key}' not found"),
                             }
                         }
-                        ModuleConfigCmd::Set { key, value, stdin, temp } => {
+                        ModuleConfigCmd::Set {
+                            key,
+                            value,
+                            stdin,
+                            temp,
+                        } => {
                             // Validate key at CLI layer for better user experience
                             module_config::validate_config_key(&key)?;
 
@@ -597,7 +602,8 @@ pub fn run() -> Result<()> {
                                     // Read from stdin
                                     use std::io::Read;
                                     let mut buffer = String::new();
-                                    std::io::stdin().read_to_string(&mut buffer)
+                                    std::io::stdin()
+                                        .read_to_string(&mut buffer)
                                         .context("Failed to read from stdin")?;
                                     buffer
                                 }
@@ -611,7 +617,12 @@ pub fn run() -> Result<()> {
                             } else {
                                 module_config::ConfigType::Persist
                             };
-                            module_config::set_config_value(&module_id, &key, &value_str, config_type)
+                            module_config::set_config_value(
+                                &module_id,
+                                &key,
+                                &value_str,
+                                config_type,
+                            )
                         }
                         ModuleConfigCmd::List => {
                             let config = module_config::merge_configs(&module_id)?;
