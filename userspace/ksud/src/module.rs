@@ -10,14 +10,14 @@ use anyhow::{Context, Result, anyhow, bail, ensure};
 use const_format::concatcp;
 use is_executable::is_executable;
 use java_properties::PropertiesIter;
+use jwalk::WalkDir;
 use log::{debug, info, warn};
 use regex_lite::Regex;
 
-use std::fs::{copy, rename};
 use std::{
     collections::HashMap,
     env::var as env_var,
-    fs::{File, Permissions, canonicalize, remove_dir_all, set_permissions},
+    fs::{File, Permissions, canonicalize, copy, remove_dir_all, rename, set_permissions},
     io::Cursor,
     path::{Path, PathBuf},
     process::Command,
@@ -574,6 +574,30 @@ pub fn uninstall_module(id: &str) -> Result<()> {
 
     info!("Module {id} marked for removal");
 
+    Ok(())
+}
+
+pub fn get_size(id: &str) -> Result<()> {
+    validate_module_id(id)?;
+
+    let module_path = Path::new(defs::MODULE_DIR).join(id);
+    ensure!(module_path.exists(), "Module {id} not found");
+    let mut size: u64 = 0;
+
+    for entry in WalkDir::new(module_path) {
+        let entry = entry.with_context(|| format!("Module {id} not found"))?;
+
+        if !entry.file_type().is_dir() {
+            continue;
+        }
+
+        size += entry
+            .metadata()
+            .with_context(|| "Failed to get metadata".to_string())?
+            .len();
+    }
+
+    println!("size: {size}b");
     Ok(())
 }
 

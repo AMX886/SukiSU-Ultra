@@ -303,6 +303,12 @@ enum Module {
     /// list all modules
     List,
 
+    /// Query module's size
+    Size {
+        /// module id
+        id: String,
+    },
+
     /// manage module configuration
     Config {
         #[command(subcommand)]
@@ -558,6 +564,7 @@ pub fn run() -> Result<()> {
                 Module::Disable { id } => module::disable_module(&id),
                 Module::Action { id } => module::run_action(&id),
                 Module::List => module::list_modules(),
+                Module::Size { id } => module::get_size(&id),
                 Module::Config { command } => {
                     // Get module ID from environment variable
                     let module_id = std::env::var("KSU_MODULE").map_err(|_| {
